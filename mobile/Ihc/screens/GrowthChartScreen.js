@@ -5,9 +5,12 @@ import {
   Text,
   View
 } from 'react-native';
-import ScatterPlot from '../components/ScatterPlot';
+import GrowthChart from '../components/GrowthChart';
 import Container from '../components/Container';
 
+// Keep this here rather than in components/GrowthChart because otherwise I
+// think it would load these up twice, because we are including two GrowthCharts
+// for weight and weight
 const boysWeightData = require('../growthchartdata/boys_weights.json');
 const girlsWeightData = require('../growthchartdata/girls_weights.json');
 const boysHeightData = require('../growthchartdata/boys_heights.json');
@@ -18,18 +21,17 @@ const infantGirlsWeightData = require('../growthchartdata/infant_girls_weights.j
 const infantBoysHeightData = require('../growthchartdata/infant_boys_heights.json');
 const infantGirlsHeightData = require('../growthchartdata/infant_girls_heights.json');
 
-const PLOT_HEIGHT = 400;
-const PLOT_WIDTH = 400;
-
+// Before navigating to GrowthChartScreen, set loading to be true because it
+// takes a little time to load
 class GrowthChartScreen extends Component<{}> {
   /*
-   * Props:
-   * patientKey
+   * Redux Props:
+   * currentPatientKey
    */
   constructor(props) {
     super(props);
     this.state = {
-      patient: {},
+      patient: null,
       weightData: [],
       heightData: []
     };
@@ -49,11 +51,9 @@ class GrowthChartScreen extends Component<{}> {
   }
 
   loadPatient = () => {
-    this.props.setLoading(true);
-
     let patient = {};
     try {
-      patient = localData.getPatient(this.props.patientKey);
+      patient = localData.getPatient(this.props.currentPatientKey);
     } catch(err) {
       this.props.setErrorMessage(err.message);
       this.props.setLoading(false);
@@ -100,51 +100,28 @@ class GrowthChartScreen extends Component<{}> {
       );
     }
 
-    // Mark every 2 yrs
-    const arrYears = Array.from({length: 10}, (v,i) => i * 24 ); 
-    // Mark every 25 cm
-    const arrCm = Array.from({length: 10}, (v,i) => i * 25 ); 
-    // Mark every 25 kg
-    const arrKg = Array.from({length: 5}, (v,i) => i * 25 ); 
-
     return (
-      // TODO: Label the grid lines
       <Container>
-        <Text style={styles.title}>Growth Chart</Text>
+        <Text style={styles.title}>Growth Charts</Text>
 
         <View style={styles.plotsContainer}>
-          <View style={styles.plotContainer}>
-            <ScatterPlot
+          <View style={styles.chartContainer}>
+            <GrowthChart
               data={this.state.weightData}
-              chartHeight={PLOT_HEIGHT}
-              chartWidth={PLOT_WIDTH}
-              minX={0}
-              maxX={this.state.patient.isInfant ? 26 : 240}
-              minY={0}
-              maxY={this.state.patient.isInfant ? 20 : 125}
-              horizontalLinesAt={arrKg}
-              verticalLinesAt={arrYears}
-              title='Weight Growth Chart'
-              unitX='Age'
-              unitY='Weight' />
+              isInfant={this.state.patient.isInfant}
+              isMale={this.state.patient.isMale}
+              isWeight={true}
+            />
           </View>
 
-          <View style={styles.plotContainer}>
-            <ScatterPlot
-              chartHeight={PLOT_HEIGHT}
-              chartWidth={PLOT_WIDTH}
+          <View style={styles.chartContainer}>
+            <GrowthChart
               data={this.state.heightData}
-              minX={0}
-              maxX={this.state.patient.isInfant ? 26 : 240}
-              minY={0}
-              maxY={this.state.patient.isInfant ? 105 : 200}
-              horizontalLinesAt={arrCm}
-              verticalLinesAt={arrYears}
-              title='Height Growth Chart'
-              unitX='Age'
-              unitY='Height' />
+              isInfant={this.state.patient.isInfant}
+              isMale={this.state.patient.isMale}
+              isWeight={false}
+            />
           </View>
-
         </View>
       </Container>
     );
@@ -153,14 +130,11 @@ class GrowthChartScreen extends Component<{}> {
 
 const styles = StyleSheet.create({
   plotsContainer: {
-    flex: 1,
     margin: 8,
+    width: '100%'
   },
-  plotContainer: {
-    height: PLOT_HEIGHT + 20,
+  chartContainer: {
     margin: 4,
-    padding: 8,
-    backgroundColor: '#ededed'
   },
   title: {
     fontSize: 20,
@@ -173,9 +147,13 @@ const styles = StyleSheet.create({
 import { setLoading, setErrorMessage } from '../reduxActions/containerActions';
 import { connect } from 'react-redux';
 
+const mapStateToProps = state => ({
+  currentPatientKey: state.currentPatientKey
+});
+
 const mapDispatchToProps = dispatch => ({
   setLoading: val => dispatch(setLoading(val)),
   setErrorMessage: val => dispatch(setErrorMessage(val))
 });
 
-export default connect(null, mapDispatchToProps)(GrowthChartScreen);
+export default connect(mapStateToProps, mapDispatchToProps)(GrowthChartScreen);

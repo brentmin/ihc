@@ -8,7 +8,7 @@ import { Col, Grid } from 'react-native-easy-grid';
 import Container from '../components/Container';
 import Button from '../components/Button';
 
-export default class PatientHomeScreen extends Component<{}> {
+class PatientHomeScreen extends Component<{}> {
   /*
    * Expects:
    *  {
@@ -20,6 +20,7 @@ export default class PatientHomeScreen extends Component<{}> {
    */
   constructor(props) {
     super(props);
+    this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent.bind(this));
   }
 
   goToTriage = () => {
@@ -55,11 +56,19 @@ export default class PatientHomeScreen extends Component<{}> {
   }
 
   goToGrowthChart = () => {
+    // Growth chart takes time to load
+    this.props.setLoading(true);
     this.props.navigator.push({
       screen: 'Ihc.GrowthChartScreen',
       title: 'Back to patient',
       passProps: { patientKey: this.props.patientKey}
     });
+  }
+
+  onNavigatorEvent(event) {
+    if (event.id === 'willAppear') {
+      this.props.clearMessages();
+    }
   }
 
   render() {
@@ -126,3 +135,14 @@ const styles = StyleSheet.create({
     width: '80%'
   }
 });
+
+// Redux
+import { setLoading, clearMessages } from '../reduxActions/containerActions';
+import { connect } from 'react-redux';
+
+const mapDispatchToProps = dispatch => ({
+  setLoading: (val) => dispatch(setLoading(val)),
+  clearMessages: () => dispatch(clearMessages())
+});
+
+export default connect(null, mapDispatchToProps)(PatientHomeScreen);

@@ -1,7 +1,6 @@
 //treat these imports as 'containers'
 //to access/modify these containers, look up mongodb functions
 import PatientModel from '../models/Patient';
-import TriageModel from '../models/Triage';
 import MedicationModel from '../models/Medication';
 
 //function params for all calls are generally the same function(req,res)
@@ -227,17 +226,22 @@ const PatientController = {
         err = new Error('Patient with key ' + req.params.key + ' doesn\'t exist');
       }
 
-      // Go through each of patients triages and return the one with specified date
-      for(let triage in patient.triages) {
-        if(triage.date == req.params.date) {
+      if (err) {
+        res.json({status: false, error: err.message});
+        return;
+      }
+
+      for(let triage of patient.triages) {
+        // If an existing soap for that date exists, then update it
+        if(triage.date === req.params.date) {
           res.json({status: true, triage: triage});
           return;
         }
       }
+
       err = new Error('Patient with key ' + req.params.key + ' does not have a triage for the date ' + req.params.date);
       res.json({status: false, error: err.message});
       return;
-      
     });
   },
   GetDrugUpdates: function(req, res){
@@ -469,19 +473,19 @@ const PatientController = {
         res.json({status: true});
         return;
       });
-    })
+    });
   },
   /* body: NA, returns: array of medication objects */
   GetMedications: function(req, res) {
     MedicationModel.find({drugName: req.params.name}, function(err, drugs) {
-      if (drugs.length == 0) {
-        err = new Error(`A medication with the name ${req.params.name} does not exist`)
+      if (drugs.length === 0) {
+        err = new Error(`A medication with the name ${req.params.name} does not exist`);
       }
       if(err) {
         res.json({status: false, error: err.message});
         return;
       }
-      res.json({status: true, medications: drugs})
+      res.json({status: true, medications: drugs});
       return;
     });
   },
@@ -489,7 +493,7 @@ const PatientController = {
   UpdateMedication: function(req, res) {
     MedicationModel.findOne({drugName: req.params.name}, function(err, drug) {
       if (!drug) {
-        err = new Error(`A medication with the name ${req.params.name} does not exist`)
+        err = new Error(`A medication with the name ${req.params.name} does not exist`);
       }
       if (err) {
         res.json({status: false, error: err.message});
@@ -520,7 +524,7 @@ const PatientController = {
         res.json({status: false, error: err.message});
         return;
       }
-      res.json({status: true})
+      res.json({status: true});
       return;
     });
   }

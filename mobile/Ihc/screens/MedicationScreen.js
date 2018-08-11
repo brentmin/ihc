@@ -212,10 +212,16 @@ class MedicationScreen extends Component<{}> {
       });
   }
 
+  // When the doctor has completed prescribing medications, then update the
+  // timestamp to be displayed in the PatientSelectScreen so the Pharmacy knows
+  // that they can start filling those medications
   completed = () => {
     this.updateStatus('Doctor');
   }
 
+  // When the Pharmacy has completed filling medications, then update the
+  // timestamp to be displayed in the PatientSelectScreen so we know
+  // that the patient can get their meds
   filled = () => {
     this.updateStatus('Pharmacy');
   }

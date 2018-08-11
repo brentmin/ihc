@@ -38,12 +38,11 @@ export default class Triage {
 
   // Can pass in parameters to override defaults, mostly useful for tests
   static getInstance(patientKey = 'firstname&father&mother&20000101',
-    date = '20180101', age = 18, weight = 75, height = 100,
+    date = '20180101', weight = 75, height = 100,
     lastUpdated = new Date().getTime()) {
     return {
       patientKey: patientKey,
       date: date,
-      age: age,
       weight: weight,
       height: height,
       lastUpdated: lastUpdated,
@@ -96,7 +95,6 @@ Triage.schema = {
   properties: {
     patientKey: 'string',
     date: 'string',
-    age: 'int',
     hasInsurance: 'bool',
     location: 'string', // Girasoles or TJP or somewhere else
     arrivalTime: 'int?', // should match checkin time from Status
@@ -161,7 +159,6 @@ Locations = t.enums({
 // Insert any class methods here
 MaleTriage = t.struct({
   date: t.String,
-  age: t.Number,
   hasInsurance: t.Boolean,
   location: Locations,
   arrivalTime: t.maybe(t.Number), // should match checkin time from Status 

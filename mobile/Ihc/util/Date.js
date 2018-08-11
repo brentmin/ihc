@@ -30,3 +30,15 @@ export function stringDate(dateObj) {
   const date = dateObj.getDate() < 10 ? '0' + dateObj.getDate() : dateObj.getDate();
   return `${dateObj.getFullYear()}${month}${date}`;
 }
+
+export function getYear(strDate) {
+  return parseInt(strDate.slice(0,4));
+}
+
+export function getMonth(strDate) {
+  return parseInt(strDate.slice(4,6));
+}
+
+export function getDay(strDate) {
+  return parseInt(strDate.slice(6));
+}

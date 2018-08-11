@@ -24,7 +24,14 @@ const defaultProps = {
 
 class Dot extends React.Component {
   render() {
-    const { opacity, size, color, left, bottom, position } = this.props;
+    let { opacity, size, color, left, bottom, position } = this.props;
+
+    // Make black dots stand out a little more
+    if( color === 'black' ) {
+      opacity = 1;
+      size = size + 2;
+    }
+
     return (
       <View
         style={

@@ -10,6 +10,7 @@ import {formatDate} from '../util/Date';
 import {shortDate} from '../util/Date';
 import Container from '../components/Container';
 import Button from '../components/Button';
+import {downstreamSyncWithServer} from '../util/Sync';
 
 /* TODO:
  * Make changes in behavior for the cases that a soap form is submitted,
@@ -28,24 +29,54 @@ class PatientHistoryScreen extends Component<{}> {
     this.state = {
       patient: null,
     };
+    this.props.navigator.setOnNavigatorEvent(this.onNavigatorEvent.bind(this));
   }
 
-  loadPatient = () => {
+  syncAndLoadPatient = () => {
     this.props.setLoading(true);
     this.props.clearMessages();
 
     try {
       const patient = localData.getPatient(this.props.currentPatientKey);
-      this.props.setLoading(false);
       this.setState({ patient: patient });
     } catch(err) {
       this.props.setLoading(false);
       this.props.setErrorMessage(err.message);
+      return;
     }
+
+    downstreamSyncWithServer()
+      .then( (failedPatientKeys) => {
+        if (this.props.loading) {
+          if (failedPatientKeys.length > 0) {
+            throw new Error(`${failedPatientKeys.length} patients didn't properly sync.`);
+          }
+
+          try {
+            const patient = localData.getPatient(this.props.currentPatientKey);
+            this.props.setLoading(false);
+            this.setState({ patient: patient });
+          } catch(err) {
+            this.props.setLoading(false);
+            this.props.setErrorMessage(err.message);
+            return;
+          }
+
+          this.props.setLoading(false);
+        }
+      })
+      .catch( (err) => {
+        if (this.props.loading) {
+          this.props.setErrorMessage(err.message);
+          this.props.setLoading(false);
+        }
+      });
   }
 
-  componentDidMount() {
-    this.loadPatient();
+  onNavigatorEvent(event) {
+    if (event.id === 'willAppear') {
+      this.syncAndLoadPatient();
+    }
   }
 
   // TODO: make Soap and Triage screen read patient key from redux
@@ -65,6 +96,7 @@ class PatientHistoryScreen extends Component<{}> {
     });
   }
 
+  //TODO: triage won't always align with correct dates and fix spacing issue for dates
   render() {
     if (this.state.patient == null) {
       return (
@@ -100,9 +132,9 @@ class PatientHistoryScreen extends Component<{}> {
             </Col>
 
             <Col style={styles.col}>
-              {this.state.patient.soaps.map( (soap, i) =>
+              {this.state.patient.triages.map( (triage, i) =>
                 <Button key={i}
-                  onPress={() => this.goToTriage(soap.date)}
+                  onPress={() => this.goToTriage(triage.date)}
                   text='Triage' />
               )}
             </Col>
@@ -135,7 +167,7 @@ const styles = StyleSheet.create({
 });
 
 // Redux
-import { setLoading, setErrorMessage, clearMessages } from '../reduxActions/containerActions';
+import { setLoading, setSuccessMessage, setErrorMessage, clearMessages } from '../reduxActions/containerActions';
 import { connect } from 'react-redux';
 
 const mapStateToProps = state => ({
@@ -145,8 +177,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   setLoading: (val,showRetryButton) => dispatch(setLoading(val, showRetryButton)),
+  setSuccessMessage: val => dispatch(setSuccessMessage(val)),
   setErrorMessage: val => dispatch(setErrorMessage(val)),
-  clearMessages: () => dispatch(clearMessages()),
+  clearMessages: () => dispatch(clearMessages())
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PatientHistoryScreen);

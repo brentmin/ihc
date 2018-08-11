@@ -65,6 +65,6 @@ router.get('/medication-inventory/:name', PatientController.GetMedications);
 router.put('/medication-inventory/:name/update', PatientController.UpdateMedication);
 
 //deletes the information for an existing medication
-router.put('/medication-inventory/:name/delete', PatientController.DeleteMedication)
+router.put('/medication-inventory/:name/delete', PatientController.DeleteMedication);
 
 module.exports = router;

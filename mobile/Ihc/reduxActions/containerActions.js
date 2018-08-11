@@ -31,4 +31,4 @@ export function isUploading(uploading) {
 
 export function setCurrentPatientKey(currentPatientKey) {
   return { type: SET_CURRENT_PATIENT_KEY, currentPatientKey };
-};
+}

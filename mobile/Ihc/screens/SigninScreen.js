@@ -117,7 +117,7 @@ class SigninScreen extends Component<{}> {
           if(this.props.loading) {
             // If server update fails, mark the patient as need to upload
             this.props.setLoading(false, true);
-            this.props.setSuccessMessage(e.message);
+            this.props.setErrorMessage(e.message);
 
             localData.markPatientNeedToUpload(patient.key);
           }
